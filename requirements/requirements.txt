@@ -1,0 +1,14 @@
+ipykernel
+numpy 
+pandas
+scikit-learn
+faker
+nltk
+
+
+chromadb
+sentence-transformers
+
+
+fastapi
+uvicorn
