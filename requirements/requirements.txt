@@ -12,3 +12,5 @@ sentence-transformers
 
 fastapi
 uvicorn
+
+openai
