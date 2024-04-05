@@ -14,7 +14,7 @@ embedding_func = embedding_functions.SentenceTransformerEmbeddingFunction(
     model_name=EMBED_MODEL) 
 
 client = chromadb.HttpClient(host='localhost', port=8000)
-collection=client.get_collection("ProduDescrEmbe",embedding_function=embedding_func)
+collection=client.get_collection("Description_Vector",embedding_function=embedding_func)
 
 # data preprocessing
 
@@ -69,7 +69,7 @@ async def create_item(item: Item):
 
     for i in products:
         
-        if i["Price"]>item.min_price and i["Price"]<item.max_price and i["Rating"]>item.min_rating and i["Rating"]<item.max_rating :
+        if int(i["Price"][1:])>item.min_price and int(i["Price"][1:])<item.max_price and i["Rating"]>item.min_rating and i["Rating"]<item.max_rating :
             a.append(i)
             b+=1
         if b==3:
