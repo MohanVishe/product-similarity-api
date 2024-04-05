@@ -14,7 +14,7 @@ embedding_func = embedding_functions.SentenceTransformerEmbeddingFunction(
     model_name=EMBED_MODEL) 
 
 client = chromadb.HttpClient(host='localhost', port=8000)
-collection=client.get_collection("ProdDescEmb",embedding_function=embedding_func)
+collection=client.get_collection("ProduDescrEmbe",embedding_function=embedding_func)
 
 # data preprocessing
 
