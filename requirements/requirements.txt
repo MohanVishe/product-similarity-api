@@ -2,7 +2,6 @@ ipykernel
 numpy 
 pandas
 scikit-learn
-faker
 nltk
 
 

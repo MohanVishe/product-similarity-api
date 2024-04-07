@@ -1,7 +1,8 @@
 
-from fastapi import FastAPI
+from fastapi import FastAPI,Depends,HTTPException,Header
 from chromadb import HttpClient
 from chromadb.config import Settings
+from typing import Optional
 import chromadb
 
 # connect to database and access collection
@@ -38,6 +39,7 @@ def preprocess_text(text):
     processed_text = ' '.join(tokens)
     return processed_text
 
+SECRET_TOKEN = "abc"
 
 class Item(BaseModel):
     name: str
@@ -46,12 +48,14 @@ class Item(BaseModel):
     min_rating: float = Field(default=0.0)
     max_rating: float = Field(default=5.0)
 
-
+async def authenticate(token: Optional[str] = Header(None)):
+    if token != SECRET_TOKEN:
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
 # FastAPI app
 app = FastAPI()
 # Create a POST endpoint that accepts the Item model
-@app.post("/similar_products")
+@app.post("/similar_products", dependencies=[Depends(authenticate)])
 
 async def create_item(item: Item):
 
