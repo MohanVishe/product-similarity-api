@@ -11,13 +11,19 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 
-for resource in ("punkt", "stopwords", "wordnet"):
+for path, package in (
+    ("tokenizers/punkt", "punkt"),
+    ("corpora/stopwords", "stopwords"),
+    ("corpora/wordnet", "wordnet"),
+):
     try:
-        nltk.data.find(resource)
+        nltk.data.find(path)
     except LookupError:
-        nltk.download(resource, quiet=True)
+        nltk.download(package, quiet=True)
 
-_STOPWORDS = set(stopwords.words("english"))
+# Negations carry meaning in a query: "not a laptop" must not become "laptop".
+_NEGATIONS = {"no", "nor", "not", "n't"}
+_STOPWORDS = set(stopwords.words("english")) - _NEGATIONS
 _LEMMATIZER = WordNetLemmatizer()
 
 
