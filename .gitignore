@@ -5,3 +5,4 @@ venv/
 .env
 chroma-data/
 .ipynb_checkpoints/
+chroma.log
