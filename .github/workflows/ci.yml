@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    env:
+      ANONYMIZED_TELEMETRY: "False"
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10.2.0
+
+      - name: Install the locked dependencies (CPU torch)
+        run: |
+          uv venv --python 3.11
+          uv pip sync requirements-lock.txt --index-strategy unsafe-best-match
+
+      - name: Tests
+        run: .venv/bin/python -m pytest -q
+
+      - name: Retrieval eval matches the committed results
+        run: .venv/bin/python -m evals.run_eval --check
