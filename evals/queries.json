@@ -1,0 +1,49 @@
+{
+  "about": "Labelled retrieval queries over data/Generated_Product_Data.csv (16 products). Written by the author from the product rows before any eval run; relevance is binary and judged by product name. 'relevant' = products that answer the query (within the filters, if any). 'excluded' = products a negation query rules out. Off-topic queries have no relevant product, so the ideal response is empty.",
+  "queries": [
+    {"id": "p01", "type": "paraphrase", "query": "notebook computer for work and play", "relevant": ["Laptop"]},
+    {"id": "p02", "type": "paraphrase", "query": "mobile phone with a great camera", "relevant": ["Smartphone"]},
+    {"id": "p03", "type": "paraphrase", "query": "sneakers for jogging and marathon training", "relevant": ["Running Shoes"]},
+    {"id": "p04", "type": "paraphrase", "query": "non-slip mat for stretching and meditation", "relevant": ["Yoga Mat"]},
+    {"id": "p05", "type": "paraphrase", "query": "machine that brews my morning espresso", "relevant": ["Coffee Maker"]},
+    {"id": "p06", "type": "paraphrase", "query": "bluetooth earphones for listening to podcasts on my commute", "relevant": ["Wireless Headphones"]},
+    {"id": "p07", "type": "paraphrase", "query": "elegant outfit for a formal evening event", "relevant": ["Dress"]},
+    {"id": "p08", "type": "paraphrase", "query": "comfortable seat with lumbar support for long gaming sessions", "relevant": ["Gaming Chair"]},
+    {"id": "p09", "type": "paraphrase", "query": "non-stick pots and pans for cooking dinner", "relevant": ["Cookware Set"]},
+    {"id": "p10", "type": "paraphrase", "query": "free weights for strength training at home", "relevant": ["Dumbbell Set"]},
+    {"id": "p11", "type": "paraphrase", "query": "warm soft bedding for a cozy night's sleep", "relevant": ["Comforter Set"]},
+    {"id": "p12", "type": "paraphrase", "query": "loud wireless music player to take to the beach", "relevant": ["Portable Speaker"]},
+    {"id": "p13", "type": "paraphrase", "query": "eyewear that blocks UV rays", "relevant": ["Sunglasses"]},
+    {"id": "p14", "type": "paraphrase", "query": "bag with compartments for carrying textbooks and a laptop", "relevant": ["Backpack"]},
+    {"id": "p15", "type": "paraphrase", "query": "timepiece to wear on my wrist", "relevant": ["Watch"]},
+    {"id": "p16", "type": "paraphrase", "query": "leak-proof flask to stay hydrated on hikes", "relevant": ["Water Bottle"]},
+
+    {"id": "i01", "type": "intent", "query": "gear for a home workout", "relevant": ["Dumbbell Set", "Yoga Mat"]},
+    {"id": "i02", "type": "intent", "query": "things for the kitchen", "relevant": ["Cookware Set", "Coffee Maker"]},
+    {"id": "i03", "type": "intent", "query": "devices that play music", "relevant": ["Wireless Headphones", "Portable Speaker"]},
+    {"id": "i04", "type": "intent", "query": "equipment for an outdoor hiking trip", "relevant": ["Backpack", "Water Bottle"]},
+    {"id": "i05", "type": "intent", "query": "something for working from home", "relevant": ["Laptop", "Gaming Chair"]},
+
+    {"id": "n01", "type": "negation", "query": "headphones that are not wired", "relevant": ["Wireless Headphones"], "excluded": []},
+    {"id": "n02", "type": "negation", "query": "not a laptop, a phone", "relevant": ["Smartphone"], "excluded": ["Laptop"]},
+    {"id": "n03", "type": "negation", "query": "electronics but not a phone", "relevant": ["Laptop", "Wireless Headphones", "Portable Speaker"], "excluded": ["Smartphone"]},
+    {"id": "n04", "type": "negation", "query": "fitness equipment that is not a yoga mat", "relevant": ["Dumbbell Set"], "excluded": ["Yoga Mat"]},
+    {"id": "n05", "type": "negation", "query": "an accessory that is not sunglasses", "relevant": ["Watch"], "excluded": ["Sunglasses"]},
+    {"id": "n06", "type": "negation", "query": "not a laptop", "relevant": [], "excluded": ["Laptop"]},
+
+    {"id": "f01", "type": "filtered", "query": "electronic gadget", "filters": {"max_price": 100}, "relevant": ["Wireless Headphones", "Portable Speaker"]},
+    {"id": "f02", "type": "filtered", "query": "fitness equipment for workouts", "filters": {"max_price": 60}, "relevant": ["Yoga Mat"]},
+    {"id": "f03", "type": "filtered", "query": "device with a display", "filters": {"min_price": 500}, "relevant": ["Laptop", "Smartphone"]},
+    {"id": "f04", "type": "filtered", "query": "stylish accessory", "filters": {"min_rating": 4.7}, "relevant": ["Watch"]},
+    {"id": "f05", "type": "filtered", "query": "something to listen to music with", "filters": {"max_price": 70}, "relevant": ["Portable Speaker"]},
+    {"id": "f06", "type": "filtered", "query": "kitchen equipment", "filters": {"min_price": 140, "max_price": 200}, "relevant": ["Cookware Set"]},
+
+    {"id": "o01", "type": "off_topic", "query": "quantum chromodynamics lecture notes", "relevant": []},
+    {"id": "o02", "type": "off_topic", "query": "mortgage refinancing interest rates", "relevant": []},
+    {"id": "o03", "type": "off_topic", "query": "python programming tutorial for beginners", "relevant": []},
+    {"id": "o04", "type": "off_topic", "query": "replacement tyres for my car", "relevant": []},
+    {"id": "o05", "type": "off_topic", "query": "puppy food for a golden retriever", "relevant": []},
+    {"id": "o06", "type": "off_topic", "query": "income tax filing deadline", "relevant": []},
+    {"id": "o07", "type": "off_topic", "query": "petrol lawn mower for a large garden", "relevant": []}
+  ]
+}
