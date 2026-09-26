@@ -30,5 +30,7 @@ _LEMMATIZER = WordNetLemmatizer()
 def preprocess_text(text: str) -> str:
     tokens = word_tokenize(text)
     tokens = [t for t in tokens if t.lower() not in _STOPWORDS and t not in string.punctuation]
-    tokens = [_LEMMATIZER.lemmatize(t).lower() for t in tokens]
+    # Lowercase first: WordNet only knows lowercase forms, so "Headphones" or a
+    # sentence-initial "Designed" would otherwise pass through unlemmatised.
+    tokens = [_LEMMATIZER.lemmatize(t.lower()) for t in tokens]
     return " ".join(tokens)
