@@ -3,6 +3,7 @@ import pytest
 from evals.scoring import (
     above_floor,
     first_relevant_rank,
+    parser_stats,
     pick_floor,
     recall_at_k,
     reciprocal_rank,
@@ -59,6 +60,7 @@ def test_summarize_known_answer_without_floor():
     assert s["on_topic_empty_rate"] == 0.0
     assert s["negation_excluded_at_1"] == 1.0
     assert s["negation_excluded_in_top3"] == 1.0
+    assert s["negation_accuracy"] == 0.0
 
 
 def test_summarize_known_answer_with_floor():
@@ -96,3 +98,33 @@ def test_pick_floor_returns_none_when_no_floor_helps():
         {"min_similarity": 0.1, "recall@3": 0.9, "off_topic_fp_rate": 1.0},
     ]
     assert pick_floor(sweep) is None
+
+
+def test_rankings_may_carry_a_mode_score():
+    ranking = [["A", 0.5, 0.0328], ["B", 0.2, 0.0164]]
+    assert above_floor(ranking, 0.3) == ["A"]  # the floor is on the cosine (field 1)
+    records = [
+        {"type": "exact", "relevant": ["B"], "ranking": ranking},
+        {"type": "off_topic", "relevant": [], "ranking": [["C", 0.1, 0.0161]]},
+    ]
+    assert separation(records, index=2) == {
+        "off_topic_best_similarity_max": 0.0161,
+        "on_topic_first_relevant_similarity_min": 0.0164,
+        "on_topic_relevant_in_top3_similarity_min": 0.0164,
+    }
+
+
+def test_parser_stats():
+    records = [
+        {"type": "negation", "relevant": ["B"], "excluded": ["A"], "parser_excluded": ["A"]},
+        {"type": "negation", "relevant": ["B"], "excluded": ["C"], "parser_excluded": []},
+        {"type": "hedge", "relevant": ["W"], "excluded": [], "parser_excluded": ["W"]},
+        {"type": "exact", "relevant": ["X"], "parser_excluded": []},
+    ]
+    assert parser_stats(records) == {
+        "n_negation_with_excluded": 2,
+        "negations_fully_excluded": 1,
+        "relevant_wrongly_excluded": 1,
+        "n_hedge": 1,
+        "hedges_with_exclusion": 1,
+    }

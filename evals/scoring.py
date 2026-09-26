@@ -1,18 +1,20 @@
 """Pure scoring functions for the retrieval eval (no Chroma, no model).
 
-A "ranking" is the list of (product name, similarity) pairs the search returned,
-best first. A "record" is one labelled query plus its ranking.
+A "ranking" is the list of (product name, similarity[, score]) entries the search
+returned, best first: `similarity` is the cosine the API reports and filters on,
+`score` is what the ranking mode sorted by. A "record" is one labelled query plus
+its ranking.
 """
 from statistics import mean
 
-ON_TOPIC_TYPES = ("paraphrase", "intent", "negation", "filtered")
+ON_TOPIC_TYPES = ("exact", "paraphrase", "intent", "negation", "hedge", "filtered")
 
 
 def above_floor(ranking, floor):
     """Names the API would return at this min_similarity (None = no floor)."""
     if floor is None:
-        return [name for name, _ in ranking]
-    return [name for name, sim in ranking if sim >= floor]
+        return [entry[0] for entry in ranking]
+    return [entry[0] for entry in ranking if entry[1] >= floor]
 
 
 def first_relevant_rank(ranked, relevant):
@@ -49,6 +51,8 @@ def summarize(records, floor, k_values=(1, 3, 5), limit=3):
     - on_topic_empty_rate: share of on-topic queries that return nothing.
     - negation_excluded_at_1 / in_top_limit: share of negation queries whose
       ruled-out product is ranked first / appears in the first `limit` results.
+    - negation_accuracy: share of negation queries with NO ruled-out product in
+      the first `limit` results (1 - negation_excluded_in_top_limit).
     """
     on_topic = [r for r in records if r["relevant"]]
     off_topic = [r for r in records if r["type"] == "off_topic"]
@@ -70,6 +74,9 @@ def summarize(records, floor, k_values=(1, 3, 5), limit=3):
     summary[f"negation_excluded_in_top{limit}"] = _mean(
         [float(bool(set(ranked(r)[:limit]) & set(r["excluded"]))) for r in negations]
     )
+    summary["negation_accuracy"] = _mean(
+        [float(not set(ranked(r)[:limit]) & set(r["excluded"])) for r in negations]
+    )
     return summary
 
 
@@ -90,21 +97,26 @@ def by_type(records, floor, k_values=(1, 3, 5)):
     return out
 
 
-def separation(records, limit=3):
-    """How far apart on-topic and off-topic similarities sit (no floor).
+def separation(records, limit=3, index=1):
+    """How far apart on-topic and off-topic scores sit (no floor).
 
     A floor can only be clean if the best off-topic score is below the weakest
-    correct hit; the gap between them is the room a threshold has.
+    correct hit; the gap between them is the room a threshold has. `index` picks
+    the ranking field: 1 = cosine similarity, 2 = the mode's own score.
     """
-    off_topic_top = [r["ranking"][0][1] for r in records if r["type"] == "off_topic" and r["ranking"]]
+    off_topic_top = [
+        r["ranking"][0][index] for r in records if r["type"] == "off_topic" and r["ranking"]
+    ]
     first_relevant, relevant_in_top = [], []
     for r in records:
         if not r["relevant"]:
             continue
-        hits = [sim for name, sim in r["ranking"] if name in r["relevant"]]
+        hits = [entry[index] for entry in r["ranking"] if entry[0] in r["relevant"]]
         if hits:
             first_relevant.append(hits[0])
-        relevant_in_top += [sim for name, sim in r["ranking"][:limit] if name in r["relevant"]]
+        relevant_in_top += [
+            entry[index] for entry in r["ranking"][:limit] if entry[0] in r["relevant"]
+        ]
     return {
         "off_topic_best_similarity_max": max(off_topic_top) if off_topic_top else None,
         "on_topic_first_relevant_similarity_min": min(first_relevant) if first_relevant else None,
@@ -129,3 +141,28 @@ def pick_floor(sweep, max_recall_loss=0.05, k=3):
     if best["off_topic_fp_rate"] >= baseline["off_topic_fp_rate"]:
         return None
     return best["min_similarity"]
+
+
+def parser_stats(records):
+    """What the exclusion parser did, judged against the labels.
+
+    - negations_fully_excluded: negation queries whose labelled ruled-out products
+      were all excluded by the parser (out of those that have one).
+    - relevant_wrongly_excluded: queries where the parser removed a product
+      labelled relevant (a false exclusion).
+    - hedges_with_exclusion: hedge queries ("not too expensive") where the
+      parser excluded anything.
+    """
+    negations = [r for r in records if r.get("excluded")]
+    hedges = [r for r in records if r["type"] == "hedge"]
+    return {
+        "n_negation_with_excluded": len(negations),
+        "negations_fully_excluded": sum(
+            set(r["excluded"]) <= set(r["parser_excluded"]) for r in negations
+        ),
+        "relevant_wrongly_excluded": sum(
+            bool(set(r["parser_excluded"]) & set(r["relevant"])) for r in records
+        ),
+        "n_hedge": len(hedges),
+        "hedges_with_exclusion": sum(bool(r["parser_excluded"]) for r in hedges),
+    }
