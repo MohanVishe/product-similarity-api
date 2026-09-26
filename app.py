@@ -1,12 +1,14 @@
 """Product similarity API.
 
-Semantic search over product descriptions (Chroma + all-MiniLM-L6-v2),
-with price and rating filters applied inside the vector query.
+Product search over the catalogue: dense (Chroma + all-MiniLM-L6-v2), BM25,
+or both fused with reciprocal rank fusion. Price and rating filters and
+"not X" / "without X" / "except X" exclusions are applied inside the query.
 
     uvicorn app:app --reload --port 8080
 """
 import os
 from functools import lru_cache
+from typing import Literal
 
 import chromadb
 from dotenv import load_dotenv
@@ -36,8 +38,9 @@ def get_collection():
 
 app = FastAPI(
     title="Product Similarity API",
-    description="Semantic product search with price and rating filters.",
-    version="1.0.0",
+    description="Product search (dense, BM25 or hybrid) with price and rating filters "
+                "and exclusion handling.",
+    version="1.1.0",
 )
 
 
@@ -51,6 +54,15 @@ class SimilarProductsRequest(BaseModel):
     min_similarity: float | None = Field(
         retrieval.DEFAULT_MIN_SIMILARITY, ge=-1, le=1,
         description="Optional cut-off on cosine similarity; results below it are dropped",
+    )
+    mode: Literal["dense", "bm25", "hybrid"] = Field(
+        retrieval.DEFAULT_MODE,
+        description="dense = embeddings; bm25 = keywords; hybrid = both, fused by reciprocal rank",
+    )
+    exclusions: bool = Field(
+        True,
+        description="Treat 'not X' / 'without X' / 'except X' naming a product or category "
+                    "as a filter that removes it",
     )
 
     @model_validator(mode="after")
@@ -74,8 +86,8 @@ async def health(collection=Depends(get_collection)):
 
 @app.post("/similar_products", dependencies=[Depends(authenticate)])
 async def similar_products(request: SimilarProductsRequest, collection=Depends(get_collection)):
-    """Price and rating go into Chroma's `where` clause; see retrieval.search."""
-    results = retrieval.search(
+    """Price, rating and exclusions go into Chroma's `where` clause; see retrieval.search_detailed."""
+    found = retrieval.search_detailed(
         collection,
         request.name,
         min_price=request.min_price,
@@ -84,5 +96,13 @@ async def similar_products(request: SimilarProductsRequest, collection=Depends(g
         max_rating=request.max_rating,
         limit=request.limit,
         min_similarity=request.min_similarity,
+        mode=request.mode,
+        exclusions=request.exclusions,
     )
-    return {"query": request.name, "count": len(results), "results": results}
+    return {
+        "query": request.name,
+        "mode": request.mode,
+        "excluded": found["excluded"],
+        "count": len(found["results"]),
+        "results": found["results"],
+    }

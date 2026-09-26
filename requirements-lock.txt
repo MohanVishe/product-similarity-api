@@ -147,6 +147,7 @@ numpy==1.26.4
     #   chromadb
     #   onnxruntime
     #   pandas
+    #   rank-bm25
     #   scikit-learn
     #   scipy
     #   sentence-transformers
@@ -264,6 +265,8 @@ pyyaml==6.0.3
     #   kubernetes
     #   transformers
     #   uvicorn
+rank-bm25==0.2.2
+    # via -r requirements.txt
 regex==2026.9.10
     # via
     #   nltk

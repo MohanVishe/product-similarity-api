@@ -62,3 +62,42 @@ def test_min_similarity_drops_weak_matches(client_with, catalogue_collection):
         "name": "quantum chromodynamics lecture notes", "min_similarity": 0.3,
     }).json()
     assert body["count"] == 0 and body["results"] == []
+
+
+def test_old_request_shape_still_works_and_reports_mode(client_with, catalogue_collection):
+    # A request with only the original fields gets the original response keys, plus two new ones.
+    body = client_with(catalogue_collection).post(
+        "/similar_products", headers=AUTH, json={"name": "something for working from home"},
+    ).json()
+    assert {"query", "count", "results"} <= set(body)
+    assert body["mode"] == "dense" and body["excluded"] == []
+    assert body["count"] == 3 and {"similarity", "score"} <= set(body["results"][0])
+
+
+def test_unknown_mode_returns_422_without_querying(client_with):
+    client = client_with(_Untouchable())
+    response = client.post("/similar_products", headers=AUTH, json={"name": "laptop", "mode": "sparse"})
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize("mode", ["dense", "bm25", "hybrid"])
+def test_mode_param_and_exclusion(client_with, catalogue_collection, mode):
+    body = client_with(catalogue_collection).post(
+        "/similar_products", headers=AUTH, json={"name": "not a laptop", "mode": mode, "limit": 16},
+    ).json()
+    assert body["mode"] == mode and body["excluded"] == ["Laptop"]
+    assert "Laptop" not in {r["Product Name"] for r in body["results"]}
+
+
+def test_exclusions_false_restores_the_old_behaviour(client_with, catalogue_collection):
+    body = client_with(catalogue_collection).post(
+        "/similar_products", headers=AUTH, json={"name": "not a laptop", "exclusions": False},
+    ).json()
+    assert body["excluded"] == [] and body["results"][0]["Product Name"] == "Laptop"
+
+
+def test_bm25_mode_finds_the_brand_name(client_with, catalogue_collection):
+    body = client_with(catalogue_collection).post(
+        "/similar_products", headers=AUTH, json={"name": "ABC", "mode": "bm25"},
+    ).json()
+    assert [r["Product Name"] for r in body["results"]] == ["Smartphone"]

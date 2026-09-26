@@ -8,6 +8,9 @@ chromadb==0.5.0
 numpy<2  # chromadb 0.5.0 fails to import under NumPy 2
 sentence-transformers==2.7.0
 
+# Keyword side of hybrid retrieval
+rank-bm25==0.2.2
+
 # Text processing
 nltk==3.8.1
 pandas==2.2.2
