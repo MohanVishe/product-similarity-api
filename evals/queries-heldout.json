@@ -1,0 +1,44 @@
+{
+  "about": "Held-out retrieval queries over data/Generated_Product_Data.csv (16 products). Written by the author from the product rows and committed on their own, BEFORE the hybrid-retrieval and exclusion changes were implemented; they are not used to design or tune anything and are scored once, after the changes. Relevance is binary and judged by product name. 'relevant' = products that answer the query (within the filters, if any). 'excluded' = products a negation query rules out. 'hedge' queries contain a negation word that does NOT rule a product out, so nothing should be excluded. Off-topic queries have no relevant product, so the ideal response is empty. Types: exact = a brand name or a distinctive word from the listing; paraphrase = the product described without its own name.",
+  "queries": [
+    {"id": "h01", "type": "exact", "query": "XYZ laptop", "relevant": ["Laptop"]},
+    {"id": "h02", "type": "exact", "query": "ABC smartphone", "relevant": ["Smartphone"]},
+    {"id": "h03", "type": "exact", "query": "XYZ", "relevant": ["Laptop"]},
+    {"id": "h04", "type": "exact", "query": "bluetooth speaker", "relevant": ["Portable Speaker"]},
+    {"id": "h05", "type": "exact", "query": "bluetooth", "relevant": ["Wireless Headphones", "Portable Speaker"]},
+    {"id": "h06", "type": "exact", "query": "hypoallergenic", "relevant": ["Comforter Set"]},
+    {"id": "h07", "type": "exact", "query": "programmable", "relevant": ["Coffee Maker"]},
+    {"id": "h08", "type": "exact", "query": "storage rack", "relevant": ["Dumbbell Set"]},
+
+    {"id": "h09", "type": "paraphrase", "query": "handset for snapping pictures and browsing the internet", "relevant": ["Smartphone"]},
+    {"id": "h10", "type": "paraphrase", "query": "trainers for a 10k race", "relevant": ["Running Shoes"]},
+    {"id": "h11", "type": "paraphrase", "query": "something to keep me warm in bed", "relevant": ["Comforter Set"]},
+    {"id": "h12", "type": "paraphrase", "query": "appliance that makes a hot drink at the push of a button", "relevant": ["Coffee Maker"]},
+    {"id": "h13", "type": "paraphrase", "query": "ergonomic seat for a desk setup", "relevant": ["Gaming Chair"]},
+
+    {"id": "h14", "type": "negation", "query": "kitchen gear without a coffee maker", "relevant": ["Cookware Set"], "excluded": ["Coffee Maker"]},
+    {"id": "h15", "type": "negation", "query": "bluetooth audio except headphones", "relevant": ["Portable Speaker"], "excluded": ["Wireless Headphones"]},
+    {"id": "h16", "type": "negation", "query": "electronics excluding the laptop", "relevant": ["Smartphone", "Wireless Headphones", "Portable Speaker"], "excluded": ["Laptop"]},
+    {"id": "h17", "type": "negation", "query": "home workout equipment other than dumbbells", "relevant": ["Yoga Mat"], "excluded": ["Dumbbell Set"]},
+    {"id": "h18", "type": "negation", "query": "a travel accessory but not a backpack", "relevant": ["Water Bottle"], "excluded": ["Backpack"]},
+    {"id": "h19", "type": "negation", "query": "something to play music, no headphones", "relevant": ["Portable Speaker"], "excluded": ["Wireless Headphones"]},
+    {"id": "h20", "type": "negation", "query": "not sunglasses", "relevant": [], "excluded": ["Sunglasses"]},
+    {"id": "h21", "type": "negation", "query": "accessories that aren't watches", "relevant": ["Sunglasses", "Backpack", "Water Bottle"], "excluded": ["Watch"]},
+    {"id": "h22", "type": "negation", "query": "fitness gear, not shoes", "relevant": ["Yoga Mat", "Dumbbell Set"], "excluded": ["Running Shoes"]},
+
+    {"id": "h23", "type": "hedge", "query": "a watch that is not too expensive", "relevant": ["Watch"], "excluded": []},
+    {"id": "h24", "type": "hedge", "query": "not just a phone, I want a great camera too", "relevant": ["Smartphone"], "excluded": []},
+    {"id": "h25", "type": "hedge", "query": "running shoes that won't fall apart", "relevant": ["Running Shoes"], "excluded": []},
+    {"id": "h26", "type": "hedge", "query": "a yoga mat with no slipping", "relevant": ["Yoga Mat"], "excluded": []},
+
+    {"id": "h27", "type": "filtered", "query": "bluetooth device", "filters": {"max_price": 70}, "relevant": ["Portable Speaker"]},
+    {"id": "h28", "type": "filtered", "query": "fitness equipment", "filters": {"min_rating": 4.8}, "relevant": ["Yoga Mat"]},
+    {"id": "h29", "type": "filtered", "query": "accessory to wear", "filters": {"max_price": 60}, "relevant": ["Sunglasses"]},
+
+    {"id": "h30", "type": "off_topic", "query": "car insurance quote", "relevant": []},
+    {"id": "h31", "type": "off_topic", "query": "chemistry homework help", "relevant": []},
+    {"id": "h32", "type": "off_topic", "query": "fresh vegetables delivery", "relevant": []},
+    {"id": "h33", "type": "off_topic", "query": "flight tickets to Paris", "relevant": []},
+    {"id": "h34", "type": "off_topic", "query": "ABC news live stream", "relevant": []}
+  ]
+}
