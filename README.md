@@ -1,6 +1,6 @@
 # 🔍 Product Similarity API
 
-**Product search over descriptions — by meaning, by keyword, or both — with price, rating and *"not X"* exclusions applied inside the query.**
+**Product search over descriptions by meaning, by keyword, or both, with price, rating and *"not X"* exclusions applied inside the query.**
 
 [![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
@@ -221,7 +221,7 @@ At the API defaults (`limit` 3, no `min_similarity`):
 | held-out | bm25 + exclusions | 0.809 | 0.929 | 0.911 | 1.000 |
 | held-out | hybrid + exclusions | 0.809 | 0.964 | 0.928 | 1.000 |
 
-Negation accuracy is the share of negation queries with no ruled-out product in the top 3. recall@1 is capped at 1/*n* for a query with *n* correct products, so MRR is the better single number. Every mode, with and without exclusions, is in [`evals/RESULTS.md`](evals/RESULTS.md).
+Negation accuracy is the share of negation queries with no ruled-out product in the top 3. recall@1 is capped at 1/*n* for a query with *n* correct products, so MRR is the better single number. Results for every mode, with exclusions and without, are in [`evals/RESULTS.md`](evals/RESULTS.md).
 
 **Exclusions.** With the parser on, the ruled-out product leaves the top 3 in 9 of 9 held-out negation queries, and in 4 of 5 on dev. The dev miss is *"electronics but not a phone"*: "phone" is not a word of "Smartphone", and the parser uses no synonyms. On both sets it excluded a product labelled relevant in 0 queries, and it left all 4 held-out hedges untouched. Ranking what remains is the open part: 2 held-out negation queries still miss their answer in the top 3 (*"home workout equipment other than dumbbells"*, *"a travel accessory but not a backpack"*).
 
@@ -242,7 +242,7 @@ Negation accuracy is the share of negation queries with no ruled-out product in 
 
 ## Limitations
 
-- **The catalogue is synthetic and small.** `data/Generated_Product_Data.csv` holds 16 generated products with clean, well-written descriptions. Real catalogue text is messy, inconsistent and often near-duplicated across listings. With 16 items, every query returns something — the best match for *"something for working from home"* scores a cosine similarity of 0.247 — which is why each result carries its score.
+- **The catalogue is synthetic and small.** `data/Generated_Product_Data.csv` holds 16 generated products with clean, well-written descriptions. Real catalogue text is messy, inconsistent and often near-duplicated across listings. With 16 items, every query returns something: the best match for *"something for working from home"* scores a cosine similarity of 0.247. That is why each result carries its score.
 - **Both evals are small and author-written.** 40 dev and 34 held-out queries, binary judgments by one person. The held-out set was committed before the code, but by the same person who wrote the parser, so it is not independent, and differences between modes on it come down to a few queries. These numbers describe this catalogue, not general retrieval quality.
 - **`min_similarity` has no default.** Off-topic and on-topic scores overlap on the held-out set (0.258 vs 0.226) and sit 0.03 apart on dev; neither the BM25 nor the fused score separates them either.
 - **Exclusion parsing is literal.** It matches words of product names and categories only: no synonyms (*"not a phone"*), no verb forms (*"I don't want a laptop"*), no scope (*"not a laptop but a laptop bag"*). Those fall back to the unchanged query.
