@@ -22,10 +22,12 @@ def test_where_filters_on_numeric_fields_only():
     assert fields == {"price_usd", "Rating"}
 
 
-def test_price_to_int():
-    assert retrieval.price_to_int("$999") == 999
+def test_price_to_number():
+    assert retrieval.price_to_number("$999") == 999
+    assert retrieval.price_to_number("$12.99") == 12.99  # not 1299
+    assert retrieval.price_to_number("$1,299.50") == 1299.5
     with pytest.raises(ValueError):
-        retrieval.price_to_int("free")
+        retrieval.price_to_number("free")
 
 
 @pytest.mark.parametrize(

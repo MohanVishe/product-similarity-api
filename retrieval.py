@@ -35,12 +35,12 @@ def embedding_function():
     return embedding_functions.SentenceTransformerEmbeddingFunction(model_name=EMBED_MODEL)
 
 
-def price_to_int(price) -> int:
-    """Prices arrive as '$999'. Store a number so Chroma can filter on it."""
-    digits = re.sub(r"[^\d]", "", str(price))
-    if not digits:
-        raise ValueError(f"unparseable price: {price!r}")
-    return int(digits)
+def price_to_number(price) -> float:
+    """Prices arrive as '$999' or '$1,299.50'. Store a number so Chroma can filter on it."""
+    try:
+        return float(re.sub(r"[$,\s]", "", str(price)))
+    except ValueError:
+        raise ValueError(f"unparseable price: {price!r}") from None
 
 
 def create_collection(client, name: str = COLLECTION, reset: bool = False):
@@ -70,7 +70,7 @@ def index_products(collection, frame: pd.DataFrame, preprocess=preprocess_text) 
                 "Product Name": row["Product Name"],
                 "Description": row["Description"],
                 "Price": row["Price"],
-                "price_usd": price_to_int(row["Price"]),
+                "price_usd": price_to_number(row["Price"]),
                 "Category": row["Category"],
                 "Rating": float(row["Rating"]),
             }

@@ -37,6 +37,13 @@ def test_missing_token_returns_401(client_with):
     assert client.post("/similar_products", json={"name": "laptop"}).status_code == 401
 
 
+def test_wrong_token_returns_401(client_with):
+    client = client_with(_Untouchable())
+    for token in ("test-tokeX", "test-token-longer", ""):
+        assert client.post("/similar_products", headers={"token": token},
+                           json={"name": "laptop"}).status_code == 401
+
+
 def test_health_counts_the_catalogue(client_with, catalogue_collection):
     body = client_with(catalogue_collection).get("/health").json()
     assert body["status"] == "ok" and body["documents"] == 16

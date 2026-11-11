@@ -7,6 +7,7 @@ or both fused with reciprocal rank fusion. Price and rating filters and
     uvicorn app:app --reload --port 8080
 """
 import os
+import secrets
 from functools import lru_cache
 from typing import Literal
 
@@ -75,17 +76,20 @@ class SimilarProductsRequest(BaseModel):
 
 
 async def authenticate(token: str | None = Header(None)):
-    if token != API_TOKEN:
+    # compare_digest: the check takes the same time however much of the token matches
+    if token is None or not secrets.compare_digest(token.encode(), API_TOKEN.encode()):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
+# Plain `def` routes: Chroma and the embedding model block, so FastAPI runs these in its
+# thread pool instead of on the event loop, where one search would hold up every request.
 @app.get("/health")
-async def health(collection=Depends(get_collection)):
+def health(collection=Depends(get_collection)):
     return {"status": "ok", "collection": retrieval.COLLECTION, "documents": collection.count()}
 
 
 @app.post("/similar_products", dependencies=[Depends(authenticate)])
-async def similar_products(request: SimilarProductsRequest, collection=Depends(get_collection)):
+def similar_products(request: SimilarProductsRequest, collection=Depends(get_collection)):
     """Price, rating and exclusions go into Chroma's `where` clause; see retrieval.search_detailed."""
     found = retrieval.search_detailed(
         collection,
